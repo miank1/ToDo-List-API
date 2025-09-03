@@ -59,3 +59,49 @@ func GetTodoByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, todo)
 }
+
+// UpdateTodo handles PUT /todos/:id
+func UpdateTodo(c *gin.Context) {
+	id := c.Param("id") // get todo id from URL
+	var todo models.Todo
+
+	// Find todo
+	if err := config.DB.First(&todo, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		return
+	}
+
+	// Bind JSON body into existing todo
+	if err := c.ShouldBindJSON(&todo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Save changes
+	if err := config.DB.Save(&todo).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update todo"})
+		return
+	}
+
+	c.JSON(http.StatusOK, todo)
+}
+
+// DeleteTodo handles DELETE /todos/:id
+func DeleteTodo(c *gin.Context) {
+	id := c.Param("id")
+	var todo models.Todo
+
+	// Check if todo exists
+	if err := config.DB.First(&todo, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		return
+	}
+
+	// Delete todo
+	if err := config.DB.Delete(&todo).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete todo"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Todo deleted successfully"})
+}
