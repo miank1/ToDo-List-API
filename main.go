@@ -1,14 +1,32 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"todo-api/config"
+	"todo-api/handlers"
+	"todo-api/models"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 
+	// Connect DB
+	config.ConnectDatabase()
+
+	// Run migrations
+	config.DB.AutoMigrate(&models.Todo{})
+
+	// Gin router
 	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello, World!",
-		})
+
+	// Test route
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "pong"})
 	})
-	r.Run()
+
+	// Todo routes
+	r.POST("/todos", handlers.CreateTodo)
+
+	// Start server
+	r.Run(":8080")
 }
