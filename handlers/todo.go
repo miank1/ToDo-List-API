@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"todo-api/config"
 	"todo-api/models"
@@ -34,15 +35,33 @@ func CreateTodo(c *gin.Context) {
 
 // GetTodos handles GET /todos
 func GetTodos(c *gin.Context) {
-	var todos []models.Todo
 
-	// Fetch all todos from DB
-	if err := config.DB.Find(&todos).Error; err != nil {
+	page := 1
+	limit := 10
+
+	if p := c.Query("page"); p != "" {
+		fmt.Sscanf(p, "%d", &page) // ??
+	}
+
+	if l := c.Query("limit"); l != "" {
+		fmt.Sscanf(l, "%d", &limit) // ??
+	}
+
+	// Calculate offset
+	offset := (page - 1) * limit
+
+	var todos []models.Todo
+	result := config.DB.Limit(limit).Offset(offset).Find(&todos)
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
 		return
 	}
 
-	c.JSON(http.StatusOK, todos)
+	c.JSON(http.StatusOK, gin.H{
+		"page":  page,
+		"limit": limit,
+		"data":  todos,
+	})
 }
 
 // GetTodoByID handles GET /todos/:id
