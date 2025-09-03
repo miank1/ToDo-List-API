@@ -26,7 +26,8 @@ func main() {
 
 	// Todo routes
 	r.POST("/todos", handlers.CreateTodo)
-
+	r.GET("/todos", handlers.GetTodos)
+	r.GET("/todos/:id", handlers.GetTodoByID)
 	// Start server
 	r.Run(":8080")
 }

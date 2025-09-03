@@ -31,3 +31,31 @@ func CreateTodo(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, todo)
 }
+
+// GetTodos handles GET /todos
+func GetTodos(c *gin.Context) {
+	var todos []models.Todo
+
+	// Fetch all todos from DB
+	if err := config.DB.Find(&todos).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
+		return
+	}
+
+	c.JSON(http.StatusOK, todos)
+}
+
+// GetTodoByID handles GET /todos/:id
+func GetTodoByID(c *gin.Context) {
+	id := c.Param("id") // get id from URL
+
+	var todo models.Todo
+
+	// Look for todo with given id
+	if err := config.DB.First(&todo, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, todo)
+}
