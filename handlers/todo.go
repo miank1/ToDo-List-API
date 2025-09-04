@@ -33,7 +33,7 @@ func CreateTodo(c *gin.Context) {
 	c.JSON(http.StatusCreated, todo)
 }
 
-// GetTodos handles GET /todos
+// GetTodos handles GET /todos - Pagination + Filtering based on status
 func GetTodos(c *gin.Context) {
 
 	page := 1
@@ -49,18 +49,25 @@ func GetTodos(c *gin.Context) {
 
 	// Calculate offset
 	offset := (page - 1) * limit
+	status := c.Query("status")
 
 	var todos []models.Todo
 	result := config.DB.Limit(limit).Offset(offset).Find(&todos)
-	if result.Error != nil {
+
+	if status != "" {
+		result = result.Where("status = ?", status)
+	}
+
+	if err := result.Find(&todos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"page":  page,
-		"limit": limit,
-		"data":  todos,
+		"page":   page,
+		"limit":  limit,
+		"data":   todos,
+		"status": status,
 	})
 }
 
