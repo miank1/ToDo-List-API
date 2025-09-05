@@ -10,7 +10,7 @@ http://localhost:8080/todos?sort=created_at&order=asc
 http://localhost:8080/todos?sort=due_date&order=asc
 
 Now /todos supports:
-
+ 
 Pagination → ?page=1&limit=5
 
 Filtering → ?status=pending
