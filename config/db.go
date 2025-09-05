@@ -36,3 +36,11 @@ func ConnectDatabase() {
 
 	fmt.Println("✅ Connected to Database")
 }
+
+func GetJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "fallback-secret" // optional fallback
+	}
+	return []byte(secret)
+}

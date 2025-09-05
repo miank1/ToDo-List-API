@@ -19,6 +19,9 @@ func CreateTodo(c *gin.Context) {
 		return
 	}
 
+	userID := c.GetUint("user_id")
+	todo.UserID = userID
+
 	// Default status = "pending" if not provided
 	if todo.Status == "" {
 		todo.Status = "pending"
@@ -51,12 +54,25 @@ func GetTodos(c *gin.Context) {
 	offset := (page - 1) * limit
 	status := c.Query("status")
 
+	sortField := c.DefaultQuery("sort", "created_at") // default sort by created_at
+	sortOrder := c.DefaultQuery("order", "desc")      // default newest first
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
 	var todos []models.Todo
-	result := config.DB.Limit(limit).Offset(offset).Find(&todos)
+	result := config.DB.Where("user_id = ?", userID).Limit(limit).Offset(offset)
 
 	if status != "" {
 		result = result.Where("status = ?", status)
 	}
+
+	// Apply sorting
+	orderClause := fmt.Sprintf("%s %s", sortField, sortOrder)
+	result = result.Order(orderClause)
 
 	if err := result.Find(&todos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
